@@ -1,0 +1,2 @@
+rootProject.name='FFmpeg'
+include ':app'
