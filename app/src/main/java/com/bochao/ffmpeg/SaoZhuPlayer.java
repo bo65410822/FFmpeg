@@ -1,5 +1,6 @@
 package com.bochao.ffmpeg;
 
+import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -9,6 +10,8 @@ import android.view.SurfaceView;
  */
 public class SaoZhuPlayer implements SurfaceHolder.Callback {
 
+
+    private static final String TAG = "SaoZhuPlayer";
 
     static {
         System.loadLibrary("saozhu");
@@ -28,16 +31,19 @@ public class SaoZhuPlayer implements SurfaceHolder.Callback {
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-
+        Log.e(TAG, "surfaceCreated: surfaceCreated");
     }
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
         this.surfaceHolder = holder;
+        Log.e(TAG, "surfaceChanged: surfaceChanged");
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
+
+        Log.e(TAG, "surfaceDestroyed: surfaceDestroyed");
 
     }
 

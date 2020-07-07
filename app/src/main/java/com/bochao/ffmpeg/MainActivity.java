@@ -28,13 +28,18 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         surfaceView = findViewById(R.id.surfaceView);
 
+
         saoZhuPlayer = new SaoZhuPlayer();
         saoZhuPlayer.setSurfaceView(surfaceView);
     }
 
     public void open(View view) {
+        Log.e(TAG, "onCreate: ffmpeg_v = " + stringFromJNI());
         File file = new File(Environment.getExternalStorageDirectory().getPath() + "/DCIM/Camera/saozhu.mp4");
+//        File file = new File(Environment.getExternalStorageDirectory().getPath() + "/Pictures/WeiXin/saozhu.mp4");
         Log.e(TAG, "open: file = " + file.getAbsolutePath());
         saoZhuPlayer.start(file.getAbsolutePath());
     }
+
+    public native String stringFromJNI();
 }
