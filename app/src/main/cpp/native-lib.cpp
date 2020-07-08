@@ -13,6 +13,7 @@ extern "C" {
 #include <libswscale/swscale.h>
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
+#include <libswresample/swresample.h>
 }
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_bochao_ffmpeg_MainActivity_stringFromJNI(
@@ -174,4 +175,108 @@ Java_com_bochao_ffmpeg_SaoZhuPlayer_native_1start(JNIEnv *env, jobject thiz, jst
     avformat_close_input(&format_context);
     // 释放 R1
     env->ReleaseStringUTFChars(path_, path);
+}extern "C"
+JNIEXPORT void JNICALL
+Java_com_bochao_ffmpeg_SaoZhuPlayer_native_1sound(JNIEnv *env, jobject thiz, jstring input_,
+                                                  jstring out_) {
+    const char *input = env->GetStringUTFChars(input_, 0);
+    const char *out = env->GetStringUTFChars(out_, 0);
+    int ret;
+    //初始化网络
+    avformat_network_init();
+    //总上下文
+    AVFormatContext *formatContext = avformat_alloc_context();
+    //打开音频文件
+    ret = avformat_open_input(&formatContext, input, NULL, NULL);
+    if (ret != 0) {
+        ALOGE("无法打开音频文件");
+        return;
+    }
+    //获取输入文件信息
+    ret = avformat_find_stream_info(formatContext, NULL);
+    if (ret < 0) {
+        ALOGE("无法输入文件信息");
+        return;
+    }
+
+    //音频时长
+    int audio_stream_idx = -1;
+    for (int i = 0; i < formatContext->nb_streams; ++i) {
+        if (formatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
+            audio_stream_idx = i;
+        }
+    }
+    ALOGE("%i", audio_stream_idx);
+    //获取解码器参数
+    AVCodecParameters *codecParameters = formatContext->streams[audio_stream_idx]->codecpar;
+    //获取解码器
+    AVCodec *dec = avcodec_find_decoder(codecParameters->codec_id);
+    //获取解码器上下文
+    AVCodecContext *codecContext = avcodec_alloc_context3(dec);
+    avcodec_parameters_to_context(codecContext, codecParameters);
+    avcodec_open2(codecContext, dec, NULL);
+    SwrContext *swrContext = swr_alloc();
+    //输入参数
+    AVSampleFormat in_sample = codecContext->sample_fmt;
+    //输入采样率
+    int in_sample_rate = codecContext->sample_rate;
+    //输入通道布局
+    uint64_t in_ch_layout = codecContext->channel_layout;
+
+    //输出参数
+    AVSampleFormat out_sample = AV_SAMPLE_FMT_S16;
+    int out_sample_rate = 44100;
+    uint64_t out_ch_layout = AV_CH_LAYOUT_STEREO;
+
+    //将参数设置到转换器中
+    swr_alloc_set_opts(swrContext, out_ch_layout, out_sample, out_sample_rate, in_ch_layout,
+                       in_sample, in_sample_rate, 0, NULL);
+    //初始化转换器其他的默认参数
+    swr_init(swrContext);
+    // 一般都是 通道数 × 输出采样率
+    uint8_t *out_buffer = (uint8_t *) av_malloc(44100 * 2);
+    FILE *fp_pcm = fopen(out, "wb");
+
+
+    //读取包 压缩过的数据
+    AVPacket *packet = av_packet_alloc();
+//    AVPacket *packet = (AVPacket *) av_malloc(sizeof(AVPacket));
+    int count = 0;
+    while (av_read_frame(formatContext, packet) >= 0) {
+        avcodec_send_packet(codecContext, packet);
+        //解压数据  将packet的压缩数据转化为AVFrame
+        AVFrame *frame = av_frame_alloc();
+        ret = avcodec_receive_frame(codecContext, frame);
+        if (ret == AVERROR(EAGAIN)) {
+            continue;
+        } else if (ret < 0) {
+            ALOGE("解压完成");
+            break;
+        }
+
+        if (packet->stream_index != audio_stream_idx) {
+            continue;
+        }
+        ALOGE("正在解码 ——》 %i", count++);
+        swr_convert(swrContext, &out_buffer, 2 * 44100, (const uint8_t **) frame->data,
+                    frame->nb_samples);
+
+
+        //计算声道数
+        int out_channel_nb = av_get_channel_layout_nb_channels(out_ch_layout);
+        //缓冲区大小
+        int out_buffer_size = av_samples_get_buffer_size(NULL, out_channel_nb, frame->nb_samples,
+                                                         out_sample, 1);
+        fwrite(out_buffer, 1, out_buffer_size, fp_pcm);
+        av_frame_free(&frame);
+    }
+    //释放资源
+    fclose(fp_pcm);
+    av_free(out_buffer);
+    swr_free(&swrContext);
+    avcodec_close(codecContext);
+    avformat_close_input(&formatContext);
+    env->ReleaseStringUTFChars(input_, input);
+    env->ReleaseStringUTFChars(out_, out);
+
 }

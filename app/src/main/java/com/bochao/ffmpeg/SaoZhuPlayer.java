@@ -51,5 +51,12 @@ public class SaoZhuPlayer implements SurfaceHolder.Callback {
         native_start(path, surfaceHolder.getSurface());
     }
 
+
+    public void sound(String input, String out){
+        native_sound(input,out);
+    }
     public native void native_start(String path, Surface surface);
+
+    public native void native_sound(String input, String out);
+
 }
