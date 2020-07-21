@@ -19,9 +19,8 @@ import static org.junit.Assert.*;
 public class ExampleInstrumentedTest {
     @Test
     public void useAppContext() {
-        // Context of the app under test.
-        Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-
-        assertEquals("com.bochao.ffmpeg", appContext.getPackageName());
+        int x = 0;
+        for (int j = 1 ;j<10;j++){
+        }
     }
 }
