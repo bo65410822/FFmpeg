@@ -2,11 +2,11 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 29
-    buildToolsVersion "29.0.3"
+    buildToolsVersion '29.0.3'
 
     defaultConfig {
         applicationId "com.bochao.ffmpeg"
-        minSdkVersion 21
+        minSdkVersion 23
         targetSdkVersion 29
         versionCode 1
         versionName "1.0"
@@ -14,7 +14,7 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         ndk {
             // 设置支持的SO库架构，第三方给的so库哪几种架构，就配置这几种架构
-            abiFilters 'armeabi-v7a'
+            abiFilters "armeabi-v7a"
         }
 
         externalNativeBuild {
@@ -26,7 +26,7 @@ android {
     }
 
     buildTypes {
-        debug{
+        debug {
             jniDebuggable true
             jniDebuggable = true
         }
@@ -43,10 +43,29 @@ android {
             version "3.10.2"
         }
     }
-    sourceSets{
-        main{
+    sourceSets {
+        main {
             jniLibs.srcDirs = ['libs']
         }
+    }
+    compileOptions {
+        sourceCompatibility = 1.8
+        targetCompatibility = 1.8
+    }
+
+    signingConfigs {
+//        release {
+//            keyAlias 'demo'
+//            keyPassword '123456'
+//            storePassword '123456'
+//            storeFile file('D:\\android_project\\jks\\demo.jks')
+//        }
+//        debug{
+//            keyAlias 'demo'
+//            keyPassword '123456'
+//            storePassword '123456'
+//            storeFile file('D:\\android_project\\jks\\demo.jks')
+//        }
     }
 }
 
@@ -58,4 +77,13 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+
+    implementation 'io.reactivex.rxjava3:rxjava:3.0.0'
+    implementation 'io.reactivex.rxjava3:rxandroid:3.0.0'
+
+
+//    //高德地图
+//    implementation 'com.amap.api:3dmap:5.0.0'
+    implementation 'com.amap.api:location:3.3.0'
+    implementation 'com.amap.api:search:5.0.0'
 }
