@@ -1,7 +1,6 @@
 package com.bochao.ffmpeg;
 
 import android.Manifest;
-import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -37,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         surfaceView = findViewById(R.id.surfaceView);
         path = Environment.getExternalStorageDirectory() + "/DCIM/Camera/saozhu.mp4";
+//        path = Environment.getExternalStorageDirectory() + "/123.mp3";
         PermissionUtil.checkPermissions(this, permissions, this::initPlayer);
     }
 
