@@ -51,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
         saoZhuPlayer.setSurfaceView(surfaceView);
         saoZhuPlayer.setDataSource(path);
         saoZhuPlayer.setListener(() -> runOnUiThread(() -> Toast.makeText(MainActivity.this, "骚猪准备完毕，可以发骚了", Toast.LENGTH_LONG).show()));
+        saoZhuPlayer.setOnErrorListener(e -> runOnUiThread(() -> Toast.makeText(MainActivity.this, "出现错误" + e, Toast.LENGTH_LONG).show()));
     }
 
 
@@ -71,4 +72,7 @@ public class MainActivity extends AppCompatActivity {
         saoZhuPlayer.start();
     }
 
+    public void stop(View view) {
+        saoZhuPlayer.stop();
+    }
 }

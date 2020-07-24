@@ -14,7 +14,6 @@ JavaCallHelper::JavaCallHelper(JavaVM *vm, JNIEnv *env, jobject instance) {
     this->env = env;
     //一旦涉及到jobject跨方法 跨线程 就需要用全局引用
     this->instance = env->NewGlobalRef(instance);
-
     //C++反射调用Java方法
     jclass clazz = env->GetObjectClass(instance);
     onErrorId = env->GetMethodID(clazz, "onError", "(I)V");
@@ -31,6 +30,27 @@ JavaCallHelper::~JavaCallHelper() {
  * @param thread
  * @param errorCode
  */
+void JavaCallHelper::onJavaBackCall(int thread, jmethodID jmethodId, int errorCode) {
+    if (thread == THREAD_MAIN) {
+        if (errorCode) {
+            env->CallVoidMethod(instance, jmethodId, errorCode);
+        } else{
+            env->CallVoidMethod(instance, jmethodId);
+        }
+    } else {
+        //子线程
+        JNIEnv *env;
+        //获取当前线程的env
+        vm->AttachCurrentThread(&env, 0);
+        if (errorCode) {
+            env->CallVoidMethod(instance, jmethodId, errorCode);
+        } else{
+            env->CallVoidMethod(instance, jmethodId);
+        }
+        vm->DetachCurrentThread();
+    }
+}
+
 void JavaCallHelper::onError(int thread, int errorCode) {
 
     //主线程

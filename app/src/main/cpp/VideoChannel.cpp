@@ -196,3 +196,13 @@ void VideoChannel::render() {
 void VideoChannel::setRenderFrameCallback(RenderFrameCallback callback) {
     this->callback = callback;
 }
+
+void VideoChannel::stop() {
+    isPlaying = 0;
+    frames.setWork(0);
+    packets.setWork(0);
+    pthread_join(pid_decode, 0);
+    pthread_join(pid_render, 0);
+//    avcodec_free_context(&avCodecContext);
+
+}

@@ -38,6 +38,7 @@ public:
 
     void setRenderFrameCallback(RenderFrameCallback callback);
 
+    void stop();
 private:
     pthread_t pid_decode;
     pthread_t pid_render;
@@ -45,6 +46,7 @@ private:
     RenderFrameCallback callback;
     AudioChannel *audioChannel = 0;
     int fps;
+
 };
 
 

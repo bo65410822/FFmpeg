@@ -27,6 +27,8 @@ public:
 
     int getPcm();
 
+    void stop();
+
 public:
     uint8_t *data = 0;
     int out_channels;//通道数
@@ -53,6 +55,7 @@ private:
 
     //重采样
     SwrContext *swrContext = 0;
+
 };
 
 

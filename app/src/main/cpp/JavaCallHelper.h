@@ -17,10 +17,14 @@ public:
 
     void onError(int thread, int errorCode);
 
+    void onJavaBackCall(int thread, jmethodID jmethodId, int errorCode);
+
 private:
     JavaVM *vm;
     JNIEnv *env;
     jobject instance;
+
+public:
     jmethodID onErrorId;
     jmethodID onPrepareId;
 };

@@ -9,6 +9,7 @@ SaoZhuFFmpeg *ffmpeg = 0;
 JavaVM *javaVm = 0;
 ANativeWindow *window = 0;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+JavaCallHelper *javaCallHelper = 0;
 
 int JNI_OnLoad(JavaVM *vm, void *r) {
     javaVm = vm;
@@ -50,7 +51,7 @@ Java_com_bochao_ffmpeg_SaoZhuPlayer_native_1prepare(JNIEnv *env, jobject thiz,
                                                     jstring data_source) {
     const char *dataSource = env->GetStringUTFChars(data_source, 0);
     //创建播放器
-    JavaCallHelper *javaCallHelper = new JavaCallHelper(javaVm, env, thiz);
+    javaCallHelper = new JavaCallHelper(javaVm, env, thiz);
     ffmpeg = new SaoZhuFFmpeg(javaCallHelper, dataSource);
     ffmpeg->setRenderFrameCallback(render);
     ffmpeg->prepare();
@@ -73,5 +74,28 @@ Java_com_bochao_ffmpeg_SaoZhuPlayer_native_1setSurface(JNIEnv *env, jobject thiz
         window = 0;
     }
     window = ANativeWindow_fromSurface(env, surface);
+    pthread_mutex_unlock(&mutex);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_bochao_ffmpeg_SaoZhuPlayer_native_1stop(JNIEnv *env, jobject thiz) {
+
+
+    if (ffmpeg){
+        ffmpeg->stop();
+    }
+    DELETE(javaCallHelper);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_bochao_ffmpeg_SaoZhuPlayer_native_1release(JNIEnv *env, jobject thiz) {
+    pthread_mutex_lock(&mutex);
+    if (window) {
+        //把老的释放
+        ANativeWindow_release(window);
+        window = 0;
+    }
     pthread_mutex_unlock(&mutex);
 }

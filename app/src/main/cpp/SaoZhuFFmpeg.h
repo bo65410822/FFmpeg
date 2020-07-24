@@ -29,10 +29,13 @@ public:
 
     void setRenderFrameCallback(RenderFrameCallback callback);
 
-private:
+    void stop();
+
+public:
     char *dataSource;
-    pthread_t pid ;
+    pthread_t pid;
     pthread_t pid_play;
+    pthread_t pid_stop;
     AVFormatContext *formatContext;
     JavaCallHelper *callHelper = 0;
     AudioChannel *audioChannel = 0;

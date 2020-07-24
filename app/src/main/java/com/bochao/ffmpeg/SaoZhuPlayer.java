@@ -19,6 +19,7 @@ public class SaoZhuPlayer implements SurfaceHolder.Callback {
     private String dataSource;
     private SurfaceHolder holder;
     private OnPrepareListener listener;
+
     /**
      * 让使用 设置播放的文件 或者 直播地址
      */
@@ -58,7 +59,8 @@ public class SaoZhuPlayer implements SurfaceHolder.Callback {
      * 停止播放
      */
     public void stop() {
-
+        native_stop();
+        native_release();
     }
 
     /**
@@ -90,7 +92,7 @@ public class SaoZhuPlayer implements SurfaceHolder.Callback {
      * @param error
      */
     public void onError(int error) {
-
+        onErrorListener.onError(error);
     }
 
     /**
@@ -102,7 +104,11 @@ public class SaoZhuPlayer implements SurfaceHolder.Callback {
         }
     }
 
+    private OnErrorListener onErrorListener;
 
+    public void setOnErrorListener(OnErrorListener onErrorListener) {
+        this.onErrorListener = onErrorListener;
+    }
 
     public void setListener(OnPrepareListener listener) {
         this.listener = listener;
@@ -113,9 +119,17 @@ public class SaoZhuPlayer implements SurfaceHolder.Callback {
         void onPrepare();
     }
 
+    public interface OnErrorListener {
+        void onError(int e);
+    }
+
     public native void native_prepare(String dataSource);
 
     public native void native_start();
 
     public native void native_setSurface(Surface surface);
+
+    public native void native_stop();
+
+    public native void native_release();
 }
