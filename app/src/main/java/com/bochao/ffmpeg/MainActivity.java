@@ -35,8 +35,9 @@ public class MainActivity extends AppCompatActivity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON, WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.activity_main);
         surfaceView = findViewById(R.id.surfaceView);
-        path = Environment.getExternalStorageDirectory() + "/DCIM/Camera/saozhu.mp4";
-//        path = Environment.getExternalStorageDirectory() + "/123.mp3";
+//        path = Environment.getExternalStorageDirectory() + "/DCIM/Camera/saozhu.mp4";
+//        path = Environment.getExternalStorageDirectory() + "/ceshi.mp4";
+        path = "http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4";
         PermissionUtil.checkPermissions(this, permissions, this::initPlayer);
     }
 

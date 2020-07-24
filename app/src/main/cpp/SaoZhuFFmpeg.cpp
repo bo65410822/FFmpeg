@@ -26,6 +26,7 @@ SaoZhuFFmpeg::SaoZhuFFmpeg(JavaCallHelper *callHelper, const char *dataSource) {
     //strlen 获得字符串的长度 不包括\0
     this->dataSource = new char[strlen(dataSource) + 1];
     strcpy(this->dataSource, dataSource);
+    ALOGE("dataSource = %s", dataSource);
 }
 
 SaoZhuFFmpeg::~SaoZhuFFmpeg() {
@@ -50,6 +51,7 @@ void SaoZhuFFmpeg::_prepare() {
     int ret = avformat_open_input(&formatContext, dataSource, 0, 0);
     //ret不为0表示 打开媒体失败
     if (ret != 0) {
+        ALOGE("打开媒体失败:%i", ret);
         ALOGE("打开媒体失败:%s", av_err2str(ret));
         callHelper->onError(THREAD_CHILD, FFMPEG_CAN_NOT_OPEN);
         return;
@@ -68,12 +70,18 @@ void SaoZhuFFmpeg::_prepare() {
         AVStream *stream = formatContext->streams[i];
         //包含了 解码 这段流 的各种参数信息(宽、高、码率、帧率)
         AVCodecParameters *codecpar = stream->codecpar;
+        AVCodecID id = codecpar->codec_id;
+        // TODO lzb 有的视频获取的是 AVCodecID = 0(AV_CODEC_ID_NONE)，0直接导致 查找解码器失败  不懂为什么
+        ALOGE("AVCodecID = %i", id);
+        if (id == 0) {
+            continue;
+        }
 
         //无论视频还是音频都需要干的一些事情（获得解码器）
         // 1、通过 当前流 使用的 编码方式，查找解码器
-        AVCodec *dec = avcodec_find_decoder(codecpar->codec_id);
+        AVCodec *dec = avcodec_find_decoder(id);
         if (dec == NULL) {
-            ALOGE("查找解码器失败:%s", av_err2str(ret));
+            ALOGE("查找解码器失败");
             callHelper->onError(THREAD_CHILD, FFMPEG_FIND_DECODER_FALL);
             return;
         }
@@ -101,13 +109,18 @@ void SaoZhuFFmpeg::_prepare() {
             callHelper->onError(THREAD_CHILD, FFMPEG_OPEN_DECODER_FALL);
             return;
         }
+
+        //获得单位
+        AVRational time_base = stream->time_base;
         //音频
         if (codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
             //0
-            audioChannel = new AudioChannel(i, context);
-        } else if (codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
+            audioChannel = new AudioChannel(i, context, time_base);
+        } else if (codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {//视频
             //1
-            videoChannel = new VideoChannel(i, context);
+            AVRational frame_rate = stream->avg_frame_rate;
+            int fps = static_cast<int>(av_q2d(frame_rate));
+            videoChannel = new VideoChannel(i, context, time_base, fps);
             videoChannel->setRenderFrameCallback(callback);
         }
     }
@@ -131,14 +144,17 @@ void *play(void *args) {
 void SaoZhuFFmpeg::start() {
     // 正在播放
     isPlaying = 1;
+
+    //启动声音的解码与播放
+    if (audioChannel) {
+        audioChannel->play();
+    }
+    //视频解码+播放
     if (videoChannel) {
         //设置为工作状态
 //        videoChannel->packets.setWork(1);
         videoChannel->play();
-    }
-    //启动声音的解码与播放
-    if (audioChannel){
-        audioChannel->play();
+        videoChannel->setAudioChannel(audioChannel);
     }
     pthread_create(&pid_play, 0, play, this);
 }
@@ -155,9 +171,9 @@ void SaoZhuFFmpeg::_start() {
         //=0成功 其他:失败
         if (ret == 0) {
             //stream_index 这一个流的一个序号
-            if (audioChannel && packet->stream_index == audioChannel->id) {
+            if (audioChannel && packet->stream_index == audioChannel->id) {//音频
                 audioChannel->packets.push(packet);
-            } else if (videoChannel && packet->stream_index == videoChannel->id) {
+            } else if (videoChannel && packet->stream_index == videoChannel->id) {//视频
                 videoChannel->packets.push(packet);
             }
         } else if (ret == AVERROR_EOF) {
