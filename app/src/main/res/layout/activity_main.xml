@@ -12,9 +12,11 @@
         android:layout_height="300dp" />
 
 
-    <androidx.appcompat.widget.AppCompatSeekBar
+    <EditText
+        android:hint="房间名称：例如（saozhu）"
+        android:id="@+id/live_room"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="50dp"
         android:layout_alignParentBottom="true"
         android:layout_margin="80dp"
         tools:ignore="MissingConstraints" />

@@ -3,10 +3,12 @@ package com.bochao.ffmpeg;
 import android.Manifest;
 import android.os.Bundle;
 import android.os.Environment;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -29,6 +31,8 @@ public class MainActivity extends AppCompatActivity {
     };
     private String path;
 
+    private EditText LiveRoom;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,8 +40,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         surfaceView = findViewById(R.id.surfaceView);
 //        path = Environment.getExternalStorageDirectory() + "/DCIM/Camera/saozhu.mp4";
-//        path = Environment.getExternalStorageDirectory() + "/ceshi.mp4";
-        path = "http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4";
+//        path = "http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4";
+        path = "rtmp://42.194.200.12:1935/myapp/";
+        LiveRoom = findViewById(R.id.live_room);
         PermissionUtil.checkPermissions(this, permissions, this::initPlayer);
     }
 
@@ -50,15 +55,14 @@ public class MainActivity extends AppCompatActivity {
         saoZhuPlayer = new SaoZhuPlayer();
         saoZhuPlayer.setSurfaceView(surfaceView);
         saoZhuPlayer.setDataSource(path);
-        saoZhuPlayer.setListener(() -> runOnUiThread(() -> Toast.makeText(MainActivity.this, "骚猪准备完毕，可以发骚了", Toast.LENGTH_LONG).show()));
-        saoZhuPlayer.setOnErrorListener(e -> runOnUiThread(() -> Toast.makeText(MainActivity.this, "出现错误" + e, Toast.LENGTH_LONG).show()));
+        saoZhuPlayer.setOnErrorListener(e -> runOnUiThread(() -> Toast.makeText(MainActivity.this, "123123132", Toast.LENGTH_LONG).show()));
     }
 
 
     @Override
     protected void onResume() {
         super.onResume();
-        saoZhuPlayer.prepare();
+
     }
 
     @Override
@@ -69,7 +73,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void open(View view) {
-        saoZhuPlayer.start();
+        String room = LiveRoom.getText().toString();
+        if (TextUtils.isEmpty(room)) {
+            Toast.makeText(this, "请输入房间号，例如（saozhu）", Toast.LENGTH_SHORT).show();
+            return;
+        }
+//        else if(!"saozhu".equals(room)){
+//            Toast.makeText(this, "目前只支持 saozhu", Toast.LENGTH_SHORT).show();
+//            return;
+//        }
+        saoZhuPlayer.setDataSource(path + room);
+        saoZhuPlayer.prepare();
+        saoZhuPlayer.setListener(() -> runOnUiThread(() -> {
+            Toast.makeText(MainActivity.this, "骚猪准备完毕，可以发骚了", Toast.LENGTH_LONG).show();
+            saoZhuPlayer.start();
+        }));
     }
 
     public void stop(View view) {

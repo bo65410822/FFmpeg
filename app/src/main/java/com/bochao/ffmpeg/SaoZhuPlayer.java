@@ -6,15 +6,27 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author lzb
  */
 public class SaoZhuPlayer implements SurfaceHolder.Callback {
     private static final String TAG = "SaoZhuPlayer";
-
+    public static Map<Integer,String> ERROR_CODE = new HashMap<>();
     static {
         System.loadLibrary("saozhu");
+        ERROR_CODE.put(1,"打不开视频");
+        ERROR_CODE.put(2,"找不到流媒体");
+        ERROR_CODE.put(3,"找不到解码器");
+        ERROR_CODE.put(4,"创建解码器失败");
+        ERROR_CODE.put(5,"参数失败");
+        ERROR_CODE.put(6,"打开解码器失败");
+        ERROR_CODE.put(7,"没有音视频");
     }
+
+
 
     private String dataSource;
     private SurfaceHolder holder;
